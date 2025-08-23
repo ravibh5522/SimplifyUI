@@ -66,171 +66,6 @@ const JobDetail = () => {
     }
   };
 
-  // const handleApply = async () => {
-  //   if (!profile?.id) {
-  //     toast({
-  //       title: "Authentication required",
-  //       description: "Please log in to apply for jobs",
-  //       variant: "destructive",
-  //     });
-  //     return;
-  //   }
-
-  //   setApplying(true);
-  //   try {
-  //     // Get candidate ID
-  //     const { data: candidateData, error: candidateError } = await supabase
-  //       .from('candidates')
-  //       .select('id')
-  //       .eq('user_id', profile.id)
-  //       .single();
-
-  //     if (candidateError || !candidateData) {
-  //       toast({
-  //         title: "Profile required",
-  //         description: "Please complete your candidate profile first",
-  //         variant: "destructive",
-  //       });
-  //       return;
-  //     }
-
-  //     // Check if already applied
-  //     const { data: existingApplication } = await supabase
-  //       .from('job_applications')
-  //       .select('id')
-  //       .eq('job_id', id)
-  //       .eq('candidate_id', candidateData.id)
-  //       .single();
-
-  //     if (existingApplication) {
-  //       toast({
-  //         title: "Already applied",
-  //         description: "You have already applied for this job",
-  //         variant: "destructive",
-  //       });
-  //       return;
-  //     }
-
-  //     // Submit application
-  //     const { error } = await supabase
-  //       .from('job_applications')
-  //       .insert({
-  //         job_id: id,
-  //         candidate_id: candidateData.id,
-  //         status: 'applied'
-  //       });
-
-  //     if (error) throw error;
-
-  //     toast({
-  //       title: "Application submitted!",
-  //       description: "Your application has been sent successfully",
-  //     });
-      
-  //     // Navigate back to jobs or dashboard
-  //     navigate('/dashboard');
-  //   } catch (error) {
-  //     console.error('Error applying for job:', error);
-  //     toast({
-  //       title: "Application failed",
-  //       description: "Could not submit your application",
-  //       variant: "destructive",
-  //     });
-  //   } finally {
-  //     setApplying(false);
-  //   }
-  // };
-
-  // In BOTH Jobs.tsx and JobDetail.tsx
-
-// const handleApply = async (jobId: string) => {
-//   if (!profile?.id) {
-//     toast({ title: "Authentication required" });
-//     return;
-//   }
-
-//   console.log("--- Starting Application Process ---");
-//   console.log("User profile ID:", profile.id);
-//   console.log("Applying for Job ID:", jobId);
-
-//   setApplying(true); // Assuming you have this state
-//   try {
-//     // --- STEP 1: Get Candidate ID ---
-//     console.log("Step 1: Fetching candidate record...");
-//     const { data: candidateData, error: candidateError } = await supabase
-//       .from('candidates')
-//       .select('id')
-//       .eq('profile_id', profile.id)
-//       .single();
-
-//     if (candidateError) {
-//       console.error("ERROR in Step 1 (Fetching Candidate):", candidateError);
-//       throw new Error("Could not find your candidate profile. Please complete it first.");
-//     }
-//     if (!candidateData) {
-//       throw new Error("No candidate record found for your profile.");
-//     }
-    
-//     const candidateId = candidateData.id;
-//     console.log("Step 1 SUCCESS. Found Candidate ID:", candidateId);
-
-//     // --- STEP 2: Check for Existing Application ---
-//     console.log("Step 2: Checking for existing application...");
-//     const { data: existingApplication, error: checkError } = await supabase
-//       .from('job_applications')
-//       .select('id')
-//       .eq('job_id', jobId)
-//       .eq('candidate_id', candidateId)
-//       .maybeSingle(); // Use maybeSingle() to handle no result gracefully
-
-//     if (checkError) {
-//       console.error("ERROR in Step 2 (Checking Application):", checkError);
-//       throw new Error("Could not check for existing applications.");
-//     }
-
-//     if (existingApplication) {
-//       console.log("Step 2 COMPLETE. Application already exists.");
-//       toast({ title: "Already Applied", description: "You have already applied for this job." });
-//       setApplying(false); // Make sure to stop loading
-//       return;
-//     }
-//     console.log("Step 2 SUCCESS. No existing application found.");
-
-//     // --- STEP 3: Insert New Application ---
-//     console.log("Step 3: Inserting new application...");
-//     const { error: insertError } = await supabase
-//       .from('job_applications')
-//       .insert({
-//         job_id: jobId,
-//         candidate_id: candidateId,
-//         status: 'applied'
-//       });
-
-//     if (insertError) {
-//       console.error("ERROR in Step 3 (Inserting Application):", insertError);
-//       throw insertError;
-//     }
-
-//     console.log("Step 3 SUCCESS. Application submitted!");
-//     toast({ title: "Application Submitted!" });
-
-//   } catch (error: any) {
-//     console.error('--- APPLICATION PROCESS FAILED ---', error);
-//     toast({
-//       title: "Application Failed",
-//       description: error.message,
-//       variant: "destructive",
-//     });
-//   } finally {
-//     setApplying(false);
-//   }
-// };
-
-// This is the correct function. Place it back in your Jobs.tsx or JobDetail.tsx
-// This is the final, correct version for both Jobs.tsx and JobDetail.tsx.
-// It assumes you have `profile` from a useAuth() hook and a state variable like:
-// const [applying, setApplying] = useState(false);
-
 const handleApply = async (jobId: string) => {
   // 1. Guard Clause: Ensure a user is logged in.
   if (!profile?.id) {
@@ -249,7 +84,7 @@ const handleApply = async (jobId: string) => {
     // It is PERMITTED by "Policy #2: Candidates can view their own candidate profile".
     const { data: candidateData, error: candidateError } = await supabase
       .from('candidates')
-      .select('id')
+      .select('id,resume_url')
       .eq('profile_id', profile.id)
       .single();
 
@@ -257,6 +92,20 @@ const handleApply = async (jobId: string) => {
       // This is a critical failure, as the user lacks a candidate-specific record.
       throw new Error("Your candidate record could not be found. Please complete your profile first.");
     }
+
+
+     if (!candidateData.resume_url) {
+      toast({
+        title: "Resume Required",
+        description: "Please upload your resume to your profile before applying.",
+        variant: "destructive",
+      });
+      // Guide the user to the page where they can upload their resume.
+      navigate('/profile'); // Or '/profile', etc.
+      setApplying(false); // Reset the button state
+      return; // Stop the application process
+    }
+
     const candidateId = candidateData.id;
 
     // 3. Prevent Duplicate Applications.
@@ -311,108 +160,6 @@ const handleApply = async (jobId: string) => {
     setApplying(false);
   }
 };
-
-// This is the final diagnostic version for BOTH Jobs.tsx and JobDetail.tsx
-
-// const handleApply = async (jobId: string) => {
-//   // 1. Guard Clause: Ensure a user is logged in.
-//   if (!profile?.id) {
-//     toast({
-//       title: "Authentication Required",
-//       description: "Please log in to apply for jobs.",
-//       variant: "warning",
-//     });
-//     return;
-//   }
-
-//   setApplying(true);
-//   console.log(`--- APPLYING FOR JOB: ${jobId} ---`);
-//   console.log(`User Profile ID: ${profile.id}`);
-
-//   try {
-//     // 2. Fetch the Candidate's ID from the `candidates` table.
-//     console.log("Step 1: Fetching candidate ID from 'candidates' table...");
-//     const { data: candidateData, error: candidateError } = await supabase
-//       .from('candidates')
-//       .select('id')
-//       .eq('profile_id', profile.id)
-//       .single();
-
-//     if (candidateError) {
-//       console.error(">>> FAILURE at Step 1: Error fetching candidate record.", candidateError);
-//       throw candidateError;
-//     }
-//     if (!candidateData) {
-//       console.error(">>> FAILURE at Step 1: No candidate record found for this profile.");
-//       throw new Error("Your candidate record could not be found. Please complete your profile first.");
-//     }
-//     const candidateId = candidateData.id;
-//     console.log("Step 1 SUCCESS. Found Candidate ID:", candidateId);
-
-
-//     // 3. Prevent Duplicate Applications.
-//     console.log(`Step 2: Checking if application exists for job ${jobId} and candidate ${candidateId}...`);
-//     const { data: existingApplication, error: checkError, status: checkStatus } = await supabase
-//       .from('job_applications')
-//       .select('id')
-//       .eq('job_id', jobId)
-//       .eq('candidate_id', candidateId)
-//       .maybeSingle(); 
-
-//     console.log("Step 2 Response Status:", checkStatus);
-//     if (checkError) {
-//         console.error(">>> FAILURE at Step 2: Error during duplicate check.", checkError);
-//         throw checkError;
-//     }
-//     console.log("Step 2 Data Received:", existingApplication);
-
-
-//     if (existingApplication) {
-//       console.log("Step 2 CONCLUSION: Duplicate application found. Halting process.");
-//       toast({ title: "Already Applied", description: "You have already applied for this job." });
-//       setApplying(false); // Make sure to stop loading
-//       return; // Stop the function here.
-//     }
-//     console.log("Step 2 CONCLUSION: No duplicate found. Proceeding to insert.");
-
-
-//     // 4. Insert the New Application.
-//     console.log("Step 3: Inserting new application...");
-//     const { error: insertError, status: insertStatus } = await supabase
-//       .from('job_applications')
-//       .insert({
-//         job_id: jobId,
-//         candidate_id: candidateId,
-//         status: 'applied'
-//       });
-    
-//     console.log("Step 3 Response Status:", insertStatus);
-//     if (insertError) {
-//         console.error(">>> FAILURE at Step 3: Error during insert.", insertError);
-//         throw insertError;
-//     }
-
-
-//     // 5. Success!
-//     console.log("--- APPLICATION PROCESS SUCCESSFUL ---");
-//     toast({
-//       title: "Application Submitted!",
-//       description: "Your application has been sent successfully.",
-//     });
-
-//   } catch (error: any) {
-//     // This single catch block handles any error from the steps above.
-//     console.error('--- CATCH BLOCK: An error occurred during the application process ---', error);
-//     toast({
-//         title: "Application Failed",
-//         description: error.message || "An unexpected error occurred. Please try again.",
-//         variant: "destructive",
-//     });
-//   } finally {
-//     // Ensure the loading state is always turned off, even if there's an error.
-//     setApplying(false);
-//   }
-// };
 
   const formatSalary = (min: number | null, max: number | null, currency: string) => {
     if (!min && !max) return 'Salary not specified';

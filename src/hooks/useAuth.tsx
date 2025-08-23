@@ -169,7 +169,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     .upsert({
       profile_id: user.id, // Ensure the profile_id is always part of the object
       ...updates // Spread the rest of the updates (e.g., resume_url)
-    });
+    },
+  {
+        onConflict: 'profile_id' // <-- THE FIX: Tell Supabase to use this column
+      }
+    );
 
     if (error) {
       console.error(`Error updating ${tableName} profile:`, error);

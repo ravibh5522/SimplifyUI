@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect  } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -45,6 +46,7 @@ const Jobs = () => {
   const [filteredJobs, setFilteredJobs] = useState<any[]>([]);
    const [applying, setApplying] = useState(false);
 
+   const navigate = useNavigate();
   useEffect(() => {
     fetchPublishedJobs();
   }, []);
@@ -174,7 +176,7 @@ const Jobs = () => {
     console.log("Step 1: Fetching candidate record...");
     const { data: candidateData, error: candidateError } = await supabase
       .from('candidates')
-      .select('id')
+      .select('id, resume_url')
       .eq('profile_id', profile.id)
       .single();
 
@@ -184,6 +186,17 @@ const Jobs = () => {
     }
     if (!candidateData) {
       throw new Error("No candidate record found for your profile.");
+    }
+     if (!candidateData.resume_url) {
+      toast({
+        title: "Resume Required",
+        description: "Please upload your resume to your profile before applying.",
+        variant: "destructive",
+      });
+      // Guide the user to the page where they can upload their resume.
+      navigate('/profile'); // Or '/profile', etc.
+      setApplying(false); // Reset the button state
+      return; // Stop the application process
     }
     
     const candidateId = candidateData.id;
